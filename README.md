@@ -163,7 +163,21 @@ Once configured, the system works automatically:
 4. Push to the branch
 5. Create a Pull Request
 
-## License
+---
+
+## Support My Work 
+
+- **If you appreciate what I do and would like to contribute, any amount is welcome. Your support helps fuel my journey and keeps me motivated to keep creating, learning, and sharing. Thank you for being part of it!**
+
+    [![Donate](https://img.shields.io/badge/Support-Development-blue?style=for-the-badge&logo=github)](https://donate.stripe.com/28o8zQ2wY3Dr57G001)
+
+---
+
+### Let’s Talk!
+Want to collaborate or ask questions? Feel free to reach out via [byfranke.com](https://byfranke.com/#Contact). 
+
+**Together, we can make the digital world safer!**
+
 
 This project is licensed under the MIT License. See the author for more details.
 
