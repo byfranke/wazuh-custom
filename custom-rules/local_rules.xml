@@ -1,0 +1,212 @@
+<!-- Local custom rules for Wazuh byFranke -->
+<!-- https://github.com/byfranke/wazuh-custom-rules -->
+
+<group name="local,">
+
+  <!-- ================== REGRAS SSH ================== -->
+  <rule id="100001" level="5">
+    <if_sid>5716</if_sid>
+    <list field="srcip" lookup="address_match_key">etc/lists/blocked_ips</list>
+    <description>SSH: Authentication failed from blocked IP list</description>
+    <group>authentication_failed,pci_dss_10.2.4,pci_dss_10.2.5,</group>
+  </rule>
+
+  <!-- ============= REGRAS MONITORAMENTO /root ============= -->
+  <rule id="101200" level="7">
+    <if_sid>550</if_sid>
+    <field name="file">/root</field>
+    <description>File modified in /root directory</description>
+    <group>syscheck,pci_dss_11.5,nist_800_53_SI.7,</group>
+  </rule>
+
+  <rule id="101201" level="7">
+    <if_sid>554</if_sid>
+    <field name="file">/root</field>
+    <description>File added to /root directory</description>
+    <group>syscheck,pci_dss_11.5,nist_800_53_SI.7,</group>
+  </rule>
+
+  <rule id="101202" level="9">
+    <if_sid>553</if_sid>
+    <field name="file">/root</field>
+    <description>File deleted from /root directory</description>
+    <group>syscheck,pci_dss_11.5,nist_800_53_SI.7,</group>
+  </rule>
+
+  <!-- ============= REGRAS VIRUSTOTAL ============= -->
+  <rule id="100092" level="12">
+    <if_sid>657</if_sid>
+    <match>Successfully removed threat</match>
+    <description>VirusTotal: Threat removed from $(parameters.alert.data.virustotal.source.file)</description>
+    <group>virustotal,active_response,malware_removed,</group>
+  </rule>
+
+  <rule id="100093" level="12">
+    <if_sid>657</if_sid>
+    <match>Error removing threat</match>
+    <description>VirusTotal: Error removing threat from $(parameters.alert.data.virustotal.source.file)</description>
+    <group>virustotal,active_response,malware_removal_failed,</group>
+  </rule>
+
+  <!-- ============= REGRAS KASPERSKY OPENTIP ============= -->
+  <rule id="100300" level="3">
+    <field name="integration">kaspersky-opentip</field>
+    <description>Kaspersky OpenTIP: IOC analyzed</description>
+    <group>kaspersky-opentip,threat_intelligence,</group>
+  </rule>
+
+  <rule id="100301" level="12">
+    <if_sid>100300</if_sid>
+    <field name="kaspersky.zone">Malware</field>
+    <description>Kaspersky OpenTIP: Malware detected - $(kaspersky.source.ioc)</description>
+    <group>kaspersky-opentip,malware,threat_intelligence,pci_dss_5.2,</group>
+  </rule>
+
+  <rule id="100302" level="12">
+    <if_sid>100300</if_sid>
+    <field name="kaspersky.zone">Phishing</field>
+    <description>Kaspersky OpenTIP: Phishing detected - $(kaspersky.source.ioc)</description>
+    <group>kaspersky-opentip,phishing,threat_intelligence,pci_dss_6.5.10,</group>
+  </rule>
+
+  <rule id="100303" level="8">
+    <if_sid>100300</if_sid>
+    <field name="kaspersky.zone">Adware</field>
+    <description>Kaspersky OpenTIP: Adware detected - $(kaspersky.source.ioc)</description>
+    <group>kaspersky-opentip,adware,threat_intelligence,</group>
+  </rule>
+
+  <rule id="100304" level="3">
+    <if_sid>100300</if_sid>
+    <field name="kaspersky.zone">Clean</field>
+    <description>Kaspersky OpenTIP: Clean file - $(kaspersky.source.ioc)</description>
+    <group>kaspersky-opentip,clean,threat_intelligence,</group>
+  </rule>
+
+  <!-- ============= REGRAS WEB ATTACK ============= -->
+  <rule id="100100" level="12">
+    <if_group>web</if_group>
+    <match>sql injection|union select|or 1=1|' or '|' or 1=1|select from|insert into</match>
+    <description>Web Attack: Possible SQL Injection attempt</description>
+    <group>attack,sql_injection,pci_dss_6.5.1,pci_dss_11.4,gdpr_IV_35.7.d,hipaa_164.312.b,nist_800_53_SI.4,</group>
+  </rule>
+
+  <rule id="100101" level="12">
+    <if_group>web</if_group>
+    <regex type="pcre2">(?i)(&lt;script|javascript:|onerror=|onload=|&lt;img|&lt;iframe)</regex>
+    <description>Web Attack: Possible XSS (Cross-Site Scripting) attempt</description>
+    <group>attack,xss,pci_dss_6.5.7,gdpr_IV_35.7.d,hipaa_164.312.b,nist_800_53_SI.4,</group>
+  </rule>
+
+  <rule id="100102" level="12">
+    <if_group>web</if_group>
+    <regex type="pcre2">(?i)(\.\.\/|\.\.%2f|\.\.%5c|%2e%2e%2f|%2e%2e\/)</regex>
+    <description>Web Attack: Possible path traversal/directory traversal attempt</description>
+    <group>attack,path_traversal,pci_dss_6.5.8,gdpr_IV_35.7.d,nist_800_53_SI.4,</group>
+  </rule>
+
+  <rule id="100103" level="10" frequency="10" timeframe="120" ignore="60">
+    <if_matched_sid>31100</if_matched_sid>
+    <same_source_ip />
+    <description>Web Attack: Multiple requests from same IP (possible scan/brute force)</description>
+    <group>attack,brute_force,recon,pci_dss_11.4,gdpr_IV_35.7.d,nist_800_53_SI.4,</group>
+  </rule>
+
+  <rule id="100104" level="12">
+    <if_group>web</if_group>
+    <regex type="pcre2">(?i)(cmd\.exe|/bin/bash|/bin/sh|powershell|wget|curl.*http)</regex>
+    <description>Web Attack: Possible command injection attempt</description>
+    <group>attack,command_injection,pci_dss_6.5.1,gdpr_IV_35.7.d,nist_800_53_SI.4,</group>
+  </rule>
+
+  <rule id="100105" level="12">
+    <if_group>web</if_group>
+    <regex type="pcre2">(?i)(&lt;\?php|&lt;\?=|eval\(|base64_decode|system\(|exec\()</regex>
+    <description>Web Attack: Possible PHP code injection attempt</description>
+    <group>attack,code_injection,pci_dss_6.5.1,gdpr_IV_35.7.d,</group>
+  </rule>
+
+  <!-- Regra específica para Active Response Cloudflare -->
+  <rule id="100110" level="12">
+    <if_sid>100100,100101,100102,100104,100105</if_sid>
+    <description>Critical web attack detected - triggering Cloudflare ban</description>
+    <group>attack,active_response_target,</group>
+  </rule>
+
+  <!-- Web scanning/recon tools -->
+  <rule id="100106" level="8">
+    <if_group>web</if_group>
+    <regex type="pcre2">(?i)(nikto|nmap|sqlmap|dirbuster|gobuster|wpscan|masscan|nessus|burpsuite|acunetix)</regex>
+    <description>Web Attack: Security scanning tool detected</description>
+    <group>attack,recon,scanning,pci_dss_11.4,</group>
+  </rule>
+
+  <!-- ============= REGRAS ADS (ALTERNATE DATA STREAMS) ============= -->
+  <rule id="100510" level="0">
+    <if_sid>510</if_sid>
+    <field name="title">NTFS Alternate data stream found</field>
+    <regex type="pcre2">^(/tmp/|/logs/|/cache/|/var/log/|/var/tmp/)</regex>
+    <description>Rootcheck: Ignoring ADS in non-critical locations</description>
+    <group>rootcheck,gdpr_IV_35.7.d,</group>
+  </rule>
+
+  <!-- ============= REGRAS CLOUDFLARE ACTIVE RESPONSE ============= -->
+  <rule id="100400" level="3">
+    <match>cloudflare-ban</match>
+    <description>Cloudflare Active Response: IP ban initiated</description>
+    <group>active_response,cloudflare,</group>
+  </rule>
+
+  <rule id="100401" level="3">
+    <if_sid>100400</if_sid>
+    <match>Successfully blocked</match>
+    <description>Cloudflare Active Response: IP successfully blocked</description>
+    <group>active_response,cloudflare,</group>
+  </rule>
+
+  <rule id="100402" level="7">
+    <if_sid>100400</if_sid>
+    <match>Failed to block</match>
+    <description>Cloudflare Active Response: Failed to block IP</description>
+    <group>active_response,cloudflare,errors,</group>
+  </rule>
+
+  <rule id="100403" level="3">
+    <if_sid>100400</if_sid>
+    <match>is whitelisted</match>
+    <description>Cloudflare Active Response: IP is whitelisted, skipping block</description>
+    <group>active_response,cloudflare,whitelisted,</group>
+  </rule>
+
+  <!-- ============= REGRAS DE BRUTE FORCE ============= -->
+  <rule id="101500" level="10" frequency="5" timeframe="300" ignore="60">
+    <if_matched_sid>5710</if_matched_sid>
+    <same_source_ip />
+    <description>SSH: Multiple authentication failures from same source IP</description>
+    <group>authentication_failures,brute_force,pci_dss_10.2.4,pci_dss_10.2.5,pci_dss_11.4,</group>
+  </rule>
+
+  <rule id="101501" level="10" frequency="10" timeframe="300" ignore="60">
+    <if_matched_group>authentication_failed</if_matched_group>
+    <same_source_ip />
+    <description>Multiple authentication failures from same IP (possible brute force)</description>
+    <group>authentication_failures,brute_force,pci_dss_10.2.4,pci_dss_10.2.5,</group>
+  </rule>
+
+  <!-- ============= REGRAS DE MONITORAMENTO DE SISTEMA ============= -->
+  <rule id="100600" level="7">
+    <if_sid>510</if_sid>
+    <field name="title">System Audit: CIS</field>
+    <match>not found|failed</match>
+    <description>System: CIS benchmark check failed</description>
+    <group>rootcheck,cis,compliance,gdpr_IV_35.7.d,</group>
+  </rule>
+
+  <rule id="100601" level="9">
+    <if_sid>550</if_sid>
+    <field name="file">/etc/passwd|/etc/shadow|/etc/group</field>
+    <description>System: Critical system file modified</description>
+    <group>syscheck,critical_file,pci_dss_10.5.5,pci_dss_11.5,gdpr_IV_35.7.d,</group>
+  </rule>
+
+</group>
