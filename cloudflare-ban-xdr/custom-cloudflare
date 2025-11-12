@@ -1,5 +1,6 @@
 #!/bin/bash
 # Cloudflare Active Response Wrapper
+# Copyright (C) 2024
 
 WPYTHON_BIN="framework/python/bin/python3"
 SCRIPT_PATH_NAME="$0"
