@@ -27,11 +27,11 @@ def format_timestamp(timestamp_str):
 def get_severity_emoji(level):
     """Get emoji based on alert level"""
     if level < 5:
-        return "🟢"
+        return "[MED]"
     elif level <= 7:
-        return "🟡"
+        return "[HIGH]"
     else:
-        return "🔴"
+        return "[CRIT]"
 
 def safe_get(data, keys, default="N/A"):
     """Safely get nested dictionary values"""
@@ -107,12 +107,12 @@ fields = [
         "inline": True
     },
     {
-        "name": "🕐 Timestamp",
+        "name": "Timestamp",
         "value": format_timestamp(timestamp),
         "inline": True
     },
     {
-        "name": "🖥️ Agent",
+        "name": "Agent",
         "value": f"{agent_name} (ID: {agent_id})",
         "inline": True
     }
@@ -121,7 +121,7 @@ fields = [
 # Add agent IP if available
 if agent_ip != "N/A":
     fields.append({
-        "name": "📍 Agent IP",
+        "name": "Agent IP",
         "value": agent_ip,
         "inline": True
     })
@@ -132,7 +132,7 @@ if src_ip != "N/A":
     if src_port != "N/A":
         src_info += f":{src_port}"
     fields.append({
-        "name": "🌐 Source IP",
+        "name": "Source IP",
         "value": src_info,
         "inline": True
     })
@@ -143,7 +143,7 @@ if dst_ip != "N/A":
     if dst_port != "N/A":
         dst_info += f":{dst_port}"
     fields.append({
-        "name": "🎯 Destination",
+        "name": "Destination",
         "value": dst_info,
         "inline": True
     })
@@ -151,7 +151,7 @@ if dst_ip != "N/A":
 # Add user information if available
 if src_user != "N/A":
     fields.append({
-        "name": "👤 User",
+        "name": "User",
         "value": src_user,
         "inline": True
     })
@@ -159,7 +159,7 @@ if src_user != "N/A":
 # Add protocol if available
 if protocol != "N/A":
     fields.append({
-        "name": "🔗 Protocol",
+        "name": "Protocol",
         "value": protocol,
         "inline": True
     })
@@ -167,19 +167,19 @@ if protocol != "N/A":
 # Add file information for file integrity monitoring
 if file_path != "N/A":
     fields.append({
-        "name": "📁 File Path",
+        "name": "File Path",
         "value": file_path,
         "inline": False
     })
     if file_size != "N/A":
         fields.append({
-            "name": "📏 File Size",
+            "name": "File Size",
             "value": f"{file_size} bytes",
             "inline": True
         })
     if file_permissions != "N/A":
         fields.append({
-            "name": "🔐 Permissions",
+            "name": "Permissions",
             "value": file_permissions,
             "inline": True
         })
@@ -195,7 +195,7 @@ if mitre_tactics or mitre_techniques:
         mitre_info.append(f"**Techniques:** {', '.join(mitre_techniques)}")
 
     fields.append({
-        "name": "⚔️ MITRE ATT&CK",
+        "name": "MITRE ATT&CK",
         "value": "\n".join(mitre_info),
         "inline": False
     })
@@ -205,7 +205,7 @@ full_log = safe_get(alert_json, ["full_log"])
 if full_log != "N/A" and len(full_log) > 0:
     truncated_log = full_log[:500] + "..." if len(full_log) > 500 else full_log
     fields.append({
-        "name": "📋 Log Details",
+        "name": "Log Details",
         "value": f"```{truncated_log}```",
         "inline": False
     })
@@ -215,7 +215,7 @@ payload = json.dumps({
     "content": "",
     "embeds": [
         {
-            "title": f"🚨 Wazuh Security Alert - Rule {rule_id}",
+            "title": f"Wazuh Security Alert - Rule {rule_id}",
             "color": int(color),
             "description": description,
             "fields": fields,
